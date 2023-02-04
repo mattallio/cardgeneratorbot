@@ -4,6 +4,7 @@ import os
 import schedule
 import time
 import pandas as pd
+from replit import db
 from threading import Thread
 from keep_alive import keep_alive
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
@@ -13,7 +14,6 @@ API_KEY = os.environ['API_KEY']
 bot = telebot.TeleBot(API_KEY)
 
 #initialization settings
-db = {}
 TIME = "02:00"
 selection = 1
 
