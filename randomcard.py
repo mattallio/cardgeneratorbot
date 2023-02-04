@@ -15,7 +15,7 @@ bot = telebot.TeleBot(API_KEY)
 
 #initialization settings
 TIME = "02:00"
-selection = 1
+selection = 22
 
 #checks if it's time to run any scheduled activity
 def schedule_checker():
@@ -186,7 +186,7 @@ def selectedCard(message):
 #reveals the card when the button is pressed
 @bot.callback_query_handler(func=lambda call: "reveal" == call.data)
 def revealSelection(message):
-    db[message.from_user.id]['reveal'] = True
+    db[str(message.from_user.id)]['reveal'] = True
 
 if __name__ == "__main__":
     schedule.every().day.at(TIME).do(selectionOfDay)
