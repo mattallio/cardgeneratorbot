@@ -26,10 +26,10 @@ def schedule_checker():
 #adds the user in the database and initializes its properties
 def addUser(message):
     global db
-    if message.chat.id not in db:
-        db[message.chat.id] = {}
-        db[message.chat.id]['first'] = 0
-        db[message.chat.id]['reveal'] = False
+    if str(message.chat.id) not in db:
+        db[str(message.chat.id)] = {}
+        db[str(message.chat.id)]['first'] = 0
+        db[str(message.chat.id)]['reveal'] = False
 
 #counts the elements in a folder
 def countFolder(commandFolder):
@@ -74,7 +74,7 @@ def randomFunny(message):
 def start(message):
     global db
     addUser(message)
-    db[message.chat.id]['first'] = 0
+    db[str(message.chat.id)]['first'] = 0
     markup = ReplyKeyboardMarkup(row_width=2)
     button1 = KeyboardButton("Generate Card")
     markup.add(button1)
@@ -134,14 +134,14 @@ def trainAronson(message):
 def randomCard(message):
     addUser(message)
     global db, selection
-    if db[message.chat.id]['first'] != 1:
-        db[message.chat.id]['first'] += 1
+    if db[str(message.chat.id)]['first'] != 1:
+        db[str(message.chat.id)]['first'] += 1
         card = random.randint(1,53)
         photo = open(fr"Cards/{card}.jpg", "rb")
         bot.send_photo(message.chat.id, photo)
         photo.close()
     else:
-        db[message.chat.id]['first'] += 1
+        db[str(message.chat.id)]['first'] += 1
         photo = open(fr"Cards/{selection}.jpg", "rb")
         bot.send_photo(message.chat.id, photo)
         photo.close()
@@ -155,7 +155,7 @@ def activateSelectedCard(message):
     button1 = KeyboardButton("Selected Card")
     markup.add(button1) 
     bot.send_message(message.chat.id, ".", reply_markup=markup)
-    db[message.chat.id]['first'] += 1
+    db[str(message.chat.id)]['first'] += 1
     for _ in range(1,10):
         randomCard(message)
 
@@ -171,13 +171,13 @@ def selectedCard(message):
     markup.add(InlineKeyboardButton("TURN THE CARD", callback_data="reveal"))
     bot.send_photo(message.chat.id, photo, reply_markup=markup)
     photo.close()
-    while db[message.chat.id]['reveal'] == False:
+    while db[str(message.chat.id)]['reveal'] == False:
         time.sleep(1)
     photo = open(rf"Cards/{selection}.jpg", "rb")
     bot.send_photo(message.chat.id, photo)
     photo.close()
-    if db[message.chat.id]['reveal'] == True:
-        db[message.chat.id]['reveal'] = False       
+    if db[str(message.chat.id)]['reveal'] == True:
+        db[str(message.chat.id)]['reveal'] = False       
         selection = 1
         start(message)
     else:
