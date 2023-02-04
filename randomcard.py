@@ -76,8 +76,9 @@ def start(message):
     addUser(message)
     db[str(message.chat.id)]['first'] = 0
     markup = ReplyKeyboardMarkup(row_width=2)
-    button1 = KeyboardButton("Generate Card")
-    markup.add(button1)
+    generate = KeyboardButton("Generate Card")
+    selected = KeyboardButton("Selected Card")
+    markup.add(generate, selected)
     bot.send_message(message.chat.id, "Ok, here we go", reply_markup=markup)
 
 #manda la lista dello stack memorandum
@@ -145,19 +146,6 @@ def randomCard(message):
         photo = open(fr"Cards/{selection}.jpg", "rb")
         bot.send_photo(message.chat.id, photo)
         photo.close()
-    
-#revelation mode: on
-@bot.message_handler(func=lambda m:"MM" in m.text.upper())
-def activateSelectedCard(message):
-    addUser(message)
-    global db
-    markup = ReplyKeyboardMarkup(row_width=2)
-    button1 = KeyboardButton("Selected Card")
-    markup.add(button1) 
-    bot.send_message(message.chat.id, ".", reply_markup=markup)
-    db[str(message.chat.id)]['first'] += 1
-    for _ in range(1,10):
-        randomCard(message)
 
 #button to reveal the selected card
 @bot.message_handler(func=lambda m:"SELECTED CARD" in m.text.upper())
@@ -171,17 +159,17 @@ def selectedCard(message):
     markup.add(InlineKeyboardButton("TURN THE CARD", callback_data="reveal"))
     bot.send_photo(message.chat.id, photo, reply_markup=markup)
     photo.close()
-    while db[str(message.chat.id)]['reveal'] == False:
-        time.sleep(1)
-    photo = open(rf"Cards/{selection}.jpg", "rb")
-    bot.send_photo(message.chat.id, photo)
-    photo.close()
-    if db[str(message.chat.id)]['reveal'] == True:
+    if db[str(message.chat.id)]['first'] < 5:
+        randomFunny(message)
+    else:
+        while db[str(message.chat.id)]['reveal'] == False:
+            time.sleep(1)
+        photo = open(rf"Cards/{selection}.jpg", "rb")
+        bot.send_photo(message.chat.id, photo)
+        photo.close()
         db[str(message.chat.id)]['reveal'] = False       
         selection = 1
         start(message)
-    else:
-        activateSelectedCard(message)
     
 #reveals the card when the button is pressed
 @bot.callback_query_handler(func=lambda call: "reveal" == call.data)
