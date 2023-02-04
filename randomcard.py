@@ -14,7 +14,7 @@ bot = telebot.TeleBot(API_KEY)
 
 #initialization settings
 db = {}
-TIME = "12:00"
+TIME = "02:00"
 selection = 1
 
 #checks if it's time to run any scheduled activity
