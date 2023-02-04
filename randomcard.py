@@ -168,7 +168,6 @@ def selectedCard(message):
         bot.send_photo(message.chat.id, photo)
         photo.close()
         db[str(message.chat.id)]['reveal'] = False       
-        selection = 1
         start(message)
     
 #reveals the card when the button is pressed
