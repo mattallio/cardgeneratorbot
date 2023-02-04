@@ -151,17 +151,17 @@ def randomCard(message):
 @bot.message_handler(func=lambda m:"SELECTED CARD" in m.text.upper())
 def selectedCard(message):
     addUser(message)
-    global selection
-    back = random.randint(1, countFolder("Backs")-1)
-    photo = open(fr"Backs/{back}.jpg", "rb")
-    markup = InlineKeyboardMarkup()
-    markup.row_width = 8
-    markup.add(InlineKeyboardButton("TURN THE CARD", callback_data="reveal"))
-    bot.send_photo(message.chat.id, photo, reply_markup=markup)
-    photo.close()
     if db[str(message.chat.id)]['first'] < 5:
         randomFunny(message)
     else:
+        global selection
+        back = random.randint(1, countFolder("Backs")-1)
+        photo = open(fr"Backs/{back}.jpg", "rb")
+        markup = InlineKeyboardMarkup()
+        markup.row_width = 8
+        markup.add(InlineKeyboardButton("TURN THE CARD", callback_data="reveal"))
+        bot.send_photo(message.chat.id, photo, reply_markup=markup)
+        photo.close()
         while db[str(message.chat.id)]['reveal'] == False:
             time.sleep(1)
         photo = open(rf"Cards/{selection}.jpg", "rb")
