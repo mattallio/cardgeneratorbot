@@ -238,7 +238,7 @@ def selectedCard(message):
         back = random.randint(1, countFolder("Backs")-1)
         photo = open(fr"Backs/{back}.jpg", "rb")
         markup = ReplyKeyboardMarkup()
-        markup.add(KeyboardButton("TURN THE CARD"))
+        markup.add(KeyboardButton("Turn the Card"))
         bot.send_message(message.chat.id, "Could it be?", reply_markup=markup)
         bot.send_photo(message.chat.id, photo)
         photo.close()
