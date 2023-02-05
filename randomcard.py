@@ -209,7 +209,7 @@ def activateHints(message):
 @bot.message_handler(func=lambda m:"GENERATE CARD" in m.text.upper())
 def randomCard(message):
     addUser(message)
-    if db[str(message.chat.id)]['front'] != 1 or db[str(message.chat.id)]['expert'] == 1:
+    if db[str(message.chat.id)]['front'] != 1 or ('expert' in db[str(message.chat.id)] and db[str(message.chat.id)]['expert'] == 1):
         db[str(message.chat.id)]['front'] += 1
         card = random.randint(1,53)
         photo = open(fr"Cards/{card}.jpg", "rb")
