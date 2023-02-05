@@ -237,10 +237,9 @@ def selectedCard(message):
     else:
         back = random.randint(1, countFolder("Backs")-1)
         photo = open(fr"Backs/{back}.jpg", "rb")
-        markup = InlineKeyboardMarkup()
-        markup.row_width = 8
-        markup.add(InlineKeyboardButton("TURN THE CARD", callback_data="reveal"))
-        bot.send_photo(message.chat.id, photo, reply_markup=markup)
+        markup = ReplyKeyboardMarkup()
+        markup.add(KeyboardButton("TURN THE CARD"))
+        bot.send_photo(message.chat.id, photo, markup=markup)
         photo.close()
         while db[str(message.chat.id)]['reveal'] == False:
             time.sleep(1)
@@ -252,7 +251,7 @@ def selectedCard(message):
         start(message)
     
 #reveals the card when the button is pressed
-@bot.callback_query_handler(func=lambda call: "reveal" == call.data)
+@bot.message_handler(func=lambda m:"TURN THE CARD" in m.text.upper())
 def revealSelection(message):
     db[str(message.from_user.id)]['reveal'] = True
 
