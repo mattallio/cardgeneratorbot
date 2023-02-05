@@ -75,6 +75,8 @@ def updateSelection(message):
             break
         else:
             count += 1
+    if count > 52:
+        count = 1
     db[str(message.chat.id)]['selection'] = count
 
 #helps in memorizing the preferred stack
