@@ -239,7 +239,7 @@ def selectedCard(message):
         photo = open(fr"Backs/{back}.jpg", "rb")
         markup = ReplyKeyboardMarkup()
         markup.add(KeyboardButton("TURN THE CARD"))
-        bot.send_message(message.chat.id, "Could it be?", markup=markup)
+        bot.send_message(message.chat.id, "Could it be?", reply_markup=markup)
         bot.send_photo(message.chat.id, photo)
         photo.close()
         while db[str(message.chat.id)]['reveal'] == False:
