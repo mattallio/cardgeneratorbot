@@ -67,6 +67,8 @@ def updateSelection(message):
     elif db[str(message.chat.id)]['stack'] == "Aroson":
         stack = card2numbers.Aronson
     number = int(stack[db[str(message.chat.id)]['selection']-1]) + 1
+    if number > 52:
+        number = 1
     count = 1
     for el in stack:
         if el == number:
