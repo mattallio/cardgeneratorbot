@@ -1,0 +1,15 @@
+start - starting point
+stack - change the current stack
+mnemonica - memorize the stack faster
+memorandum - memorize the stack faster
+daortiz - memorize the stack faster
+redford - memorize the stack faster
+aronson - memorize the stack faster
+mnemonica_stack - sends the complete stack
+memorandum_stack - sends the complete stack
+daortiz_stack - sends the complete stack
+redford_stack - sends the complete stack
+aronson_stack - sends the complete stack
+expert - turn hints off
+hints - turn hints on
+help - detailed description of the bot
