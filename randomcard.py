@@ -4,6 +4,9 @@ import os
 import schedule
 import time
 import pandas as pd
+import cv2
+import imutils
+from PIL import Image
 from replit import db
 from threading import Thread
 from keep_alive import keep_alive
@@ -43,6 +46,50 @@ def countFolder(commandFolder):
          count += 1
    #print('File count:', count)
    return count
+
+#finds the card in the photo and returnes its coordinates
+def findCard(photo):
+    image = cv2.imread(photo)
+    image = imutils.resize(image, width=500)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (3, 3), 0)
+    thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+    cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+    threshold_min_area = 30000
+    number_of_contours = 0
+    for c in cnts:
+        area = cv2.contourArea(c)
+        if area > threshold_min_area:
+            cv2.drawContours(image, [c], 0, (36,255,12), 3)
+            number_of_contours += 1
+            x,y,w,h = cv2.boundingRect(c)
+            if x==0 and y==0:
+                continue
+            if x==0:
+                x = int(y + h/2)
+            if y==0:
+                y = int(x + w/2)
+            return (x,y,w,h)
+
+    return None
+
+#applies the selection to the photo
+def applySelection(cardCoords:tuple, message):
+    base = Image.open(r'Utilities/base.jpg')
+    #base = base.rotate(270, expand=True)
+
+    selection = Image.open(rf"Cards/{db[str(message.chat.id)]['selection']}.jpg")
+    factor = 0.45
+    selection = selection.resize((round(selection.size[0]*factor), round(selection.size[1]*factor)))
+
+    base.paste(selection, cardCoords)
+    try:
+        base.save(r'Utilities/final.jpg')
+        return 0
+    except:
+        return 1
 
 #randomly picks a selection for the day
 def selectionOfDay():
@@ -121,6 +168,30 @@ def selectStack(message):
     aronson = InlineKeyboardButton("Aroson", callback_data="aronson")
     markup.add(mnemonica, memorandum, daortiz, redford, aronson)
     bot.send_message(message.chat.id, "Select your preferred stack:", reply_markup=markup)
+
+#modifies the user's photo with the selection card
+@bot.message_handler(content_types= ["photo"])
+def getPhoto(message):
+    downloaded_file = bot.download_file(bot.get_file(message.photo[-1].file_id).file_path)
+    with open(r"Utilities/base.jpg", 'wb') as new_file:
+        new_file.write(downloaded_file)
+
+    card = findCard(r'Utilities/base.jpg')
+    if card != None:
+        modify = applySelection((card[0]+card[2]-200, card[1]+card[3]-300), message)
+        if modify == 0:
+            photo = open(r'Utilities/final.jpg', "rb")
+            bot.send_photo(message.chat.id, photo)
+            bot.send_message(message.chat.id, "Was this your card?")
+            photo.close()
+            updateSelection(message)
+            start(message)
+        else:
+            bot.send_message(message.chat.id, "Sorry I can't see very well, try to send another image")
+            start(message)
+    else:
+        bot.send_message(message.chat.id, "Sorry I can't see very well, try to send another image")
+        start(message)
 
 #sends the selected stack list
 @bot.message_handler(commands=["memorandum_stack"])
