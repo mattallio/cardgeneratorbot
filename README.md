@@ -1,6 +1,6 @@
 # 🎩cardgeneratorbot🃏
 
-Welcome to Card Magic Bot! This Telegram bot is designed to help magicians and card enthusiasts master card stacks and perform incredible card magic tricks. Whether you're working on memorizing a card stack or preparing for your next magic performance, Card Magic Bot is here to assist!
+Welcome to Card Generator Bot! This Telegram bot is designed to help magicians and card enthusiasts master card stacks and perform incredible card magic tricks. Whether you're working on memorizing a card stack or preparing for your next magic performance, Card Generator Bot is here to assist!
 
 ## 🚀 Features
 
@@ -10,7 +10,8 @@ Welcome to Card Magic Bot! This Telegram bot is designed to help magicians and c
 
 ## 🔗 Access the Bot
 
-You can find and start using the Card Magic Bot on Telegram by clicking [here](https://t.me/randomcardgenerator_bot).
+[not active yet]
+In the future you'll be able to find and start using the Card Generator Bot on Telegram by clicking [here](https://t.me/randomcardgenerator_bot).
 
 ## 🌟 Usage
 
