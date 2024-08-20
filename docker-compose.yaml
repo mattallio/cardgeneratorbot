@@ -1,0 +1,12 @@
+version: "2.0"
+services:
+  cardgeneratorbot:
+    build: .
+    container_name: cardgeneratorbot
+    network_mode: host
+    env_file:
+    - .env
+    environment:
+      - TZ=Europe/Rome
+    restart: unless-stopped
+
