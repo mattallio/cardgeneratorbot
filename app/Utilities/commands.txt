@@ -12,4 +12,3 @@ redford_stack - sends the complete stack
 aronson_stack - sends the complete stack
 expert - turn hints off
 hints - turn hints on
-help - detailed description of the bot
