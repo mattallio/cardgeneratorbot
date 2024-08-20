@@ -5,7 +5,8 @@ handles the bot initialization and commands
 
 import random
 import time
-from os import getenv, listdir, path as ospath
+from os import getenv, listdir
+from os import path as ospath
 
 import cv2
 import imutils
@@ -24,9 +25,14 @@ if API_KEY is None:
 
 bot = telebot.TeleBot(API_KEY)
 
+STACKS = ["mnemonica", "memorandum", "daortiz", "redford", "aronson"]
 
-# adds the user in the database and initializes its properties
-def addUser(message):
+
+def add_user(message):
+    """
+    add the user in the database and initializes its properties
+    """
+
     if str(message.chat.id) not in db:
         db[str(message.chat.id)] = {}
         db[str(message.chat.id)]["front"] = 0
@@ -36,9 +42,12 @@ def addUser(message):
         db[str(message.chat.id)]["selection"] = 1
 
 
-# counts the elements in a folder
-def countFolder(commandFolder):
-    dir_path = rf"{commandFolder}"
+def count_folder(command_folder):
+    """
+    count the elements in a directory
+    """
+
+    dir_path = rf"{command_folder}"
     count = 0
     # Iterate directory
     for path in listdir(dir_path):
@@ -50,7 +59,7 @@ def countFolder(commandFolder):
 
 
 # finds the card in the photo and returnes its coordinates
-def findCard(photo):
+def find_card(photo):
     image = cv2.imread(photo)
     image = imutils.resize(image, width=500)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -79,7 +88,7 @@ def findCard(photo):
 
 
 # applies the selection to the photo
-def applySelection(cardCoords: tuple, message):
+def apply_selection(card_coords: tuple, message):
     base = Image.open(r"Utilities/base.jpg")
     # base = base.rotate(270, expand=True)
 
@@ -89,7 +98,7 @@ def applySelection(cardCoords: tuple, message):
         (round(selection.size[0] * factor), round(selection.size[1] * factor))
     )
 
-    base.paste(selection, cardCoords)
+    base.paste(selection, card_coords)
     try:
         base.save(r"Utilities/final.jpg")
         return 0
@@ -97,8 +106,11 @@ def applySelection(cardCoords: tuple, message):
         return 1
 
 
-# randomly picks a selection for the day
-def selectionOfDay():
+def selection_of_day():
+    """
+    randomly pick the first selection of the day
+    """
+
     selection = random.randint(1, 52)
     for user in db:
         db[user]["front"] = 0
@@ -108,19 +120,26 @@ def selectionOfDay():
     print("Selection changed!!!")
 
 
-def updateSelection(message):
+def update_selection(message):
+    """
+    choose the following card in the stack as the selection
+    """
+
     card2numbers = pd.read_excel(r"Cards/0-card-to-number.xlsx")
+
     stack = None
-    if db[str(message.chat.id)]["stack"] == "mnemonica":
-        stack = card2numbers.Mnemonica
-    elif db[str(message.chat.id)]["stack"] == "memorandum":
-        stack = card2numbers.Memorandum
-    elif db[str(message.chat.id)]["stack"] == "daortiz":
-        stack = card2numbers.Daortiz
-    elif db[str(message.chat.id)]["stack"] == "redford":
-        stack = card2numbers.Redford
-    elif db[str(message.chat.id)]["stack"] == "Aroson":
-        stack = card2numbers.Aronson
+
+    match db[str(message.chat.id)]["stack"]:
+        case "mnemonica":
+            stack = card2numbers.Mnemonica
+        case "memorandum":
+            stack = card2numbers.Memorandum
+        case "daortiz":
+            stack = card2numbers.Daortiz
+        case "redford":
+            stack = card2numbers.Redford
+        case "aronson":
+            stack = card2numbers.Aronson
 
     if stack is None:
         return
@@ -132,37 +151,48 @@ def updateSelection(message):
     for el in stack:
         if el == number:
             break
-        else:
-            count += 1
+        count += 1
     if count > 52:
         count = 1
     db[str(message.chat.id)]["selection"] = count
 
 
-# helps in memorizing the preferred stack
-def trainStack(message, stack):
+def train_stack(message, stack):
+    """
+    send a random card
+    after 5 seconds send its position in the selected stack
+    """
+
     card = random.randint(1, 52)
-    photo = open(rf"Cards/{card}.jpg", "rb")
-    bot.send_photo(message.chat.id, photo)
-    photo.close()
+    with open(rf"Cards/{card}.jpg", "rb") as f:
+        photo = f.read()
+        bot.send_photo(message.chat.id, photo)
+
     number = int(stack[card - 1])
     if number != 0:
         time.sleep(5)
     bot.send_message(message.chat.id, str(number))
 
 
-# sends a funny card
-def randomFunny(message):
-    randomCard = random.randint(1, countFolder("Funny"))
-    photo = open(rf"Funny/{randomCard}.jpg", "rb")
-    bot.send_photo(message.chat.id, photo)
-    photo.close()
+def random_funny(message):
+    """
+    send a funny card
+    """
+
+    card = random.randint(1, count_folder("Funny"))
+    with open(rf"Funny/{card}.jpg", "rb") as f:
+        photo = f.read()
+        bot.send_photo(message.chat.id, photo)
 
 
-# the bot welcomes the user
 @bot.message_handler(commands=["start"])
 def start(message):
-    addUser(message)
+    """
+    initialize the user's info
+    create the buttons
+    """
+
+    add_user(message)
     db[str(message.chat.id)]["front"] = 0
     db[str(message.chat.id)]["back"] = 0
     markup = ReplyKeyboardMarkup(row_width=2)
@@ -172,10 +202,13 @@ def start(message):
     bot.send_message(message.chat.id, "Ok, here we go", reply_markup=markup)
 
 
-# sets the preferred stack for the selection
 @bot.message_handler(commands=["stack"])
-def selectStack(message):
-    addUser(message)
+def select_stack(message):
+    """
+    let the user choose their preferred stack
+    """
+
+    add_user(message)
     markup = InlineKeyboardMarkup()
     mnemonica = InlineKeyboardButton("Mnemonica", callback_data="mnemonica")
     memorandum = InlineKeyboardButton("Memorandum", callback_data="memorandum")
@@ -190,24 +223,24 @@ def selectStack(message):
 
 # modifies the user's photo with the selection card
 @bot.message_handler(content_types=["photo"])
-def getPhoto(message):
+def get_photo(message):
     downloaded_file = bot.download_file(
         bot.get_file(message.photo[-1].file_id).file_path
     )
     with open(r"Utilities/base.jpg", "wb") as new_file:
         new_file.write(downloaded_file)
 
-    card = findCard(r"Utilities/base.jpg")
-    if card != None:
-        modify = applySelection(
+    card = find_card(r"Utilities/base.jpg")
+    if card is not None:
+        modify = apply_selection(
             (card[0] + card[2] - 200, card[1] + card[3] - 300), message
         )
         if modify == 0:
-            photo = open(r"Utilities/final.jpg", "rb")
-            bot.send_photo(message.chat.id, photo)
+            with open(r"Utilities/final.jpg", "rb") as f:
+                photo = f.read()
+                bot.send_photo(message.chat.id, photo)
             bot.send_message(message.chat.id, "Was this your card?")
-            photo.close()
-            updateSelection(message)
+            update_selection(message)
             start(message)
         else:
             bot.send_message(
@@ -222,91 +255,55 @@ def getPhoto(message):
         start(message)
 
 
-# sends the selected stack list
-@bot.message_handler(commands=["memorandum_stack"])
-def sendMemorandum(message):
-    addUser(message)
-    photo = open(r"Utilities/memorandum.png", "rb")
-    bot.send_photo(message.chat.id, photo)
-    photo.close()
+@bot.message_handler(commands=[f"{stack}_stack" for stack in STACKS])
+def send_stack(message):
+    """
+    send the picture of the selected stack
+    """
+
+    add_user(message)
+
+    stack = str(message.text).split("_", maxsplit=1)[0][1:]
+
+    with open(rf"Utilities/{stack}.png", "rb") as f:
+        photo = f.read()
+        bot.send_photo(message.chat.id, photo)
 
 
-@bot.message_handler(commands=["mnemonica_stack"])
-def sendMnemonica(message):
-    addUser(message)
-    photo = open(r"Utilities/mnemonica.png", "rb")
-    bot.send_photo(message.chat.id, photo)
-    photo.close()
+@bot.message_handler(commands=STACKS)
+def train(message):
+    """
+    train the user on the selected stack
+    """
 
-
-@bot.message_handler(commands=["daortiz_stack"])
-def sendDaortiz(message):
-    addUser(message)
-    photo = open(r"Utilities/daortiz.png", "rb")
-    bot.send_photo(message.chat.id, photo)
-    photo.close()
-
-
-@bot.message_handler(commands=["redford_stack"])
-def sendRedford(message):
-    addUser(message)
-    photo = open(r"Utilities/redford.png", "rb")
-    bot.send_photo(message.chat.id, photo)
-    photo.close()
-
-
-@bot.message_handler(commands=["aronson_stack"])
-def sendAronson(message):
-    addUser(message)
-    photo = open(r"Utilities/aronson.png", "rb")
-    bot.send_photo(message.chat.id, photo)
-    photo.close()
-
-
-# commands to memorize the selected stack
-@bot.message_handler(commands=["mnemonica"])
-def trainMnemonica(message):
-    addUser(message)
+    add_user(message)
     card2numbers = pd.read_excel(r"Cards/0-card-to-number.xlsx")
-    stack = card2numbers.Mnemonica
-    trainStack(message, stack)
+
+    stack = None
+
+    match message.text:
+        case "/mnemonica":
+            stack = card2numbers.Mnemonica
+        case "/memorandum":
+            stack = card2numbers.Memorandum
+        case "/daortiz":
+            stack = card2numbers.Daortiz
+        case "/redford":
+            stack = card2numbers.Redford
+        case "/aronson":
+            stack = card2numbers.Aronson
+
+    if stack is not None:
+        train_stack(message, stack)
 
 
-@bot.message_handler(commands=["memorandum"])
-def trainMemorandum(message):
-    addUser(message)
-    card2numbers = pd.read_excel(r"Cards/0-card-to-number.xlsx")
-    stack = card2numbers.Memorandum
-    trainStack(message, stack)
-
-
-@bot.message_handler(commands=["daortiz"])
-def trainDaortiz(message):
-    addUser(message)
-    card2numbers = pd.read_excel(r"Cards/0-card-to-number.xlsx")
-    stack = card2numbers.Daortiz
-    trainStack(message, stack)
-
-
-@bot.message_handler(commands=["redford"])
-def trainRedford(message):
-    addUser(message)
-    card2numbers = pd.read_excel(r"Cards/0-card-to-number.xlsx")
-    stack = card2numbers.Redford
-    trainStack(message, stack)
-
-
-@bot.message_handler(commands=["aronson"])
-def trainAronson(message):
-    addUser(message)
-    card2numbers = pd.read_excel(r"Cards/0-card-to-number.xlsx")
-    stack = card2numbers.Aronson
-    trainStack(message, stack)
-
-
-# command to disable the hints
 @bot.message_handler(commands=["expert"])
 def expert(message):
+    """
+    set the user as expert
+    they won't receive hints anymore
+    """
+
     markup = InlineKeyboardMarkup()
     sure = InlineKeyboardButton("I am sure", callback_data="sure")
     cancel = InlineKeyboardButton("Cancel", callback_data="cancel")
@@ -318,30 +315,47 @@ def expert(message):
     )
 
 
-# command to enable hints
 @bot.message_handler(commands=["hints"])
-def activateHints(message):
+def activate_hints(message):
+    """
+    save the user as not expert
+    """
+
     del db[str(message.chat.id)]["expert"]
     bot.send_message(message.chat.id, "You've turned hints back on!")
 
 
-# the bot sends a random card or tells the performer the card of the day
+@bot.callback_query_handler(func=lambda call: "sure" == call.data)
+def disable_hints(message):
+    """
+    save the user as expert
+    """
+
+    db[str(message.from_user.id)]["expert"] = 1
+    bot.send_message(message.from_user.id, "Changes have been saved!")
+
+
 @bot.message_handler(func=lambda m: "GENERATE CARD" in m.text.upper())
-def randomCard(message):
-    addUser(message)
+def random_card(message):
+    """
+    send a random card
+    if hints are active or first selection of the day send the seleciton
+    """
+
+    add_user(message)
     if db[str(message.chat.id)]["front"] != 1 or (
         "expert" in db[str(message.chat.id)] and db[str(message.chat.id)]["expert"] == 1
     ):
         db[str(message.chat.id)]["front"] += 1
         card = random.randint(1, 53)
-        photo = open(rf"Cards/{card}.jpg", "rb")
-        bot.send_photo(message.chat.id, photo)
-        photo.close()
+        with open(rf"Cards/{card}.jpg", "rb") as f:
+            photo = f.read()
+            bot.send_photo(message.chat.id, photo)
     else:
         db[str(message.chat.id)]["front"] += 1
-        photo = open(rf"Cards/{db[str(message.chat.id)]['selection']}.jpg", "rb")
-        bot.send_photo(message.chat.id, photo)
-        photo.close()
+        with open(rf"Cards/{db[str(message.chat.id)]['selection']}.jpg", "rb") as f:
+            photo = f.read()
+            bot.send_photo(message.chat.id, photo)
         if (
             "expert" in db[str(message.chat.id)]
             and db[str(message.chat.id)]["expert"] == 0
@@ -349,75 +363,61 @@ def randomCard(message):
             db[str(message.chat.id)]["expert"] = 1
 
 
-# button to reveal the selected card
 @bot.message_handler(func=lambda m: "SELECTED CARD" in m.text.upper())
-def selectedCard(message):
-    addUser(message)
+def selected_card(message):
+    """
+    send a funny card or the selected card
+    """
+
+    add_user(message)
     if db[str(message.chat.id)]["front"] < 4 or db[str(message.chat.id)]["back"] < 3:
-        randomFunny(message)
+        random_funny(message)
         db[str(message.chat.id)]["back"] += 1
     else:
-        back = random.randint(1, countFolder("Backs") - 1)
-        photo = open(rf"Backs/{back}.jpg", "rb")
-        markup = ReplyKeyboardMarkup()
-        markup.add(KeyboardButton("Turn the Card"))
-        bot.send_message(message.chat.id, "Could it be?", reply_markup=markup)
-        bot.send_photo(message.chat.id, photo)
-        photo.close()
-        while db[str(message.chat.id)]["reveal"] == False:
+        back = random.randint(1, count_folder("Backs") - 1)
+
+        with open(rf"Backs/{back}.jpg", "rb") as f:
+            photo = f.read()
+            markup = ReplyKeyboardMarkup()
+            markup.add(KeyboardButton("Turn the Card"))
+            bot.send_message(message.chat.id, "Could it be?", reply_markup=markup)
+            bot.send_photo(message.chat.id, photo)
+
+        while db[str(message.chat.id)]["reveal"] is False:
             time.sleep(1)
-        photo = open(rf"Cards/{db[str(message.chat.id)]['selection']}.jpg", "rb")
-        bot.send_photo(message.chat.id, photo)
-        photo.close()
+
+        with open(rf"Cards/{db[str(message.chat.id)]['selection']}.jpg", "rb") as f:
+            photo = f.read()
+            bot.send_photo(message.chat.id, photo)
         db[str(message.chat.id)]["reveal"] = False
-        updateSelection(message)
+        update_selection(message)
         start(message)
 
 
-# reveals the card when the button is pressed
 @bot.message_handler(func=lambda m: "TURN THE CARD" in m.text.upper())
-def revealSelection(message):
+def reveal_selection(message):
+    """
+    make the bot reveal the selected card
+    """
+
     db[str(message.from_user.id)]["reveal"] = True
 
 
-# sets the stack preference of the user
-@bot.callback_query_handler(func=lambda call: "mnemonica" == call.data)
-def setMnemonica(message):
-    db[str(message.from_user.id)]["stack"] = "mnemonica"
-    bot.send_message(message.from_user.id, "Setup completed!")
+@bot.callback_query_handler(func=lambda call: call.data in STACKS)
+def set_stack(call):
+    """
+    set the stack as chosen by the user
+    """
 
-
-@bot.callback_query_handler(func=lambda call: "memorandum" == call.data)
-def setMemorandum(message):
-    db[str(message.from_user.id)]["stack"] = "memorandum"
-    bot.send_message(message.from_user.id, "Setup completed!")
-
-
-@bot.callback_query_handler(func=lambda call: "daortiz" == call.data)
-def setDaortiz(message):
-    db[str(message.from_user.id)]["stack"] = "daortiz"
-    bot.send_message(message.from_user.id, "Setup completed!")
-
-
-@bot.callback_query_handler(func=lambda call: "redford" == call.data)
-def setRedford(message):
-    db[str(message.from_user.id)]["stack"] = "redford"
-    bot.send_message(message.from_user.id, "Setup completed!")
-
-
-@bot.callback_query_handler(func=lambda call: "aronson" == call.data)
-def setAronson(message):
-    db[str(message.from_user.id)]["stack"] = "aronson"
-    bot.send_message(message.from_user.id, "Setup completed!")
-
-
-# saves the user changes
-@bot.callback_query_handler(func=lambda call: "sure" == call.data)
-def disableHints(message):
-    db[str(message.from_user.id)]["expert"] = 1
-    bot.send_message(message.from_user.id, "Changes have been saved!")
+    stack = call.data
+    db[str(call.from_user.id)]["stack"] = stack
+    bot.send_message(call.from_user.id, "Setup completed!")
 
 
 @bot.callback_query_handler(func=lambda call: "cancel" == call.data)
-def cancel(message):
+def stop_operation(message):
+    """
+    cancel the operation
+    """
+
     bot.send_message(message.from_user.id, "Operation cancelled")

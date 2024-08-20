@@ -7,7 +7,7 @@ import time
 from threading import Thread
 
 import schedule
-from bot import bot, selectionOfDay
+from bot import bot, selection_of_day
 
 # initialization settings
 TIME = "02:00"
@@ -29,7 +29,7 @@ def main():
     start the bot
     """
 
-    schedule.every().day.at(TIME).do(selectionOfDay)
+    schedule.every().day.at(TIME).do(selection_of_day)
     Thread(target=schedule_checker).start()
     bot.infinity_polling()
 
